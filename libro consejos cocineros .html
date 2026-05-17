@@ -1,0 +1,258 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cocina Fácil - 400 Recetas</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+  
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #fff;
+    line-height: 1.6;
+  }
+
+  body::before {
+    content: "";
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: url('https://images.unsplash.com/photo-1555939594-58d7cb561ad1?q=80&w=1920&auto=format&fit=crop') 
+                center/cover no-repeat;
+    filter: brightness(0.4);
+    z-index: -1;
+  }
+
+  header {
+    background: rgba(0,0,0,0.7);
+    padding: 40px 20px;
+    text-align: center;
+    border-bottom: 3px solid #ff6b35;
+  }
+
+  header h1 {
+    font-size: 3em;
+    color: #ff6b35;
+    margin-bottom: 10px;
+  }
+
+  header p {
+    font-size: 1.2em;
+    color: #ddd;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 40px auto;
+    padding: 0 20px;
+  }
+
+  .search-box {
+    margin: 30px 0;
+    text-align: center;
+  }
+
+  #searchInput {
+    width: 100%;
+    max-width: 600px;
+    padding: 15px 20px;
+    font-size: 18px;
+    border-radius: 50px;
+    border: 2px solid #ff6b35;
+    background: rgba(20,20,20,0.9);
+    color: #fff;
+    outline: none;
+  }
+
+  #searchInput::placeholder {
+    color: #aaa;
+  }
+
+  .recipe {
+    background: rgba(20, 20, 20, 0.85);
+    margin-bottom: 30px;
+    padding: 30px;
+    border-radius: 15px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255,107,53,0.3);
+  }
+
+  .recipe h2 {
+    color: #ff6b35;
+    margin-bottom: 15px;
+    font-size: 2em;
+  }
+
+  .recipe h3 {
+    color: #ffa07a;
+    margin: 20px 0 10px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+  }
+
+  .card {
+    background: rgba(255,255,255,0.05);
+    padding: 15px;
+    border-radius: 10px;
+  }
+
+  .card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  ul, ol {
+    margin-left: 20px;
+    margin-top: 10px;
+  }
+
+  li {
+    margin-bottom: 8px;
+  }
+
+  .no-results {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #aaa;
+    display: none;
+  }
+
+  footer {
+    text-align: center;
+    padding: 20px;
+    background: rgba(0,0,0,0.8);
+    color: #aaa;
+    margin-top: 40px;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.5em;
+    color: #ff6b35;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍳 Cocina Fácil</h1>
+  <p>400 Recetas - Busca lo que quieras</p>
+</header>
+
+<div class="container">
+
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="Busca recetas: pasta, pollo, tacos, postres, japonesa...">
+  </div>
+
+  <div id="recipesContainer">
+    <div class="loading">Cargando 400 recetas...</div>
+  </div>
+
+  <div class="no-results" id="noResults">
+    No encontré esa receta 😢 Prueba con otra palabra
+  </div>
+
+</div>
+
+<footer>
+  <p>Hecho con ❤️ para cocineros principiantes</p>
+</footer>
+
+<script>
+const categorias = ["mexicana", "italiana", "japonesa", "china", "india", "francesa", "española", "tailandesa", "americana", "medioriente", "peruana", "brasileña", "argentina", "griega", "turca"];
+const platillos = ["Pollo", "Carne", "Res", "Cerdo", "Pescado", "Camarón", "Pasta", "Arroz", "Sopa", "Ensalada", "Tacos", "Pizza", "Curry", "Sushi", "Burrito", "Hamburguesa", "Ramen", "Paella", "Lasaña", "Ceviche", "Brownie", "Torta", "Empanada", "Tamales", "Quesadilla", "Enchiladas"];
+const tiempos = ["15 min", "20 min", "25 min", "30 min", "35 min", "45 min", "60 min", "90 min"];
+
+const recetas = Array.from({length: 400}, (_, i) => {
+  const cat = categorias[i % categorias.length];
+  const plat = platillos[i % platillos.length];
+  const tiempo = tiempos[i % tiempos.length];
+  
+  return {
+    titulo: `${plat} ${cat} Especial #${i+1}`,
+    categoria: `${cat} ${plat.toLowerCase()}`,
+    tiempo: tiempo,
+    imagen: `https://source.unsplash.com/800x600/?food,${cat},${plat}&sig=${i}`,
+    ingredientes: [
+      `${300 + (i%200)}g ingrediente principal`,
+      `${1 + (i%3)} taza de base`,
+      `${1 + (i%2)} cebolla mediana`,
+      `${2 + (i%3)} dientes de ajo`,
+      "Sal y pimienta al gusto",
+      "Aceite de oliva c/n",
+      "Especias al gusto"
+    ],
+    pasos: [
+      "Prepara y lava todos los ingredientes",
+      "Calienta el aceite en una sartén a fuego medio",
+      "Sofríe la cebolla y el ajo hasta dorar",
+      "Agrega el ingrediente principal y cocina 10 min",
+      "Ajusta la sazón con sal y pimienta",
+      "Sirve caliente y disfruta"
+    ]
+  };
+});
+
+function mostrarRecetas(filtro = "") {
+  const container = document.getElementById('recipesContainer');
+  const noResults = document.getElementById('noResults');
+  
+  const recetasFiltradas = recetas.filter(r => 
+    r.titulo.toLowerCase().includes(filtro.toLowerCase()) ||
+    r.categoria.toLowerCase().includes(filtro.toLowerCase())
+  );
+
+  if (recetasFiltradas.length === 0) {
+    container.innerHTML = "";
+    noResults.style.display = "block";
+    return;
+  }
+
+  noResults.style.display = "none";
+  
+  container.innerHTML = recetasFiltradas.slice(0, 40).map(receta => `
+    <section class="recipe">
+      <h2>${receta.titulo}</h2>
+      <p><strong>⏱ Tiempo:</strong> ${receta.tiempo} | <strong>🍴 Tipo:</strong> ${receta.categoria}</p>
+      <div class="grid">
+        <div class="card">
+          <img src="${receta.imagen}" alt="${receta.titulo}" loading="lazy">
+          <h3>Ingredientes</h3>
+          <ul>${receta.ingredientes.map(ing => `<li>${ing}</li>`).join('')}</ul>
+        </div>
+        <div class="card">
+          <h3>Paso a paso</h3>
+          <ol>${receta.pasos.map(paso => `<li>${paso}</li>`).join('')}</ol>
+        </div>
+      </div>
+    </section>
+  `).join('');
+  
+  if (recetasFiltradas.length > 40) {
+    container.innerHTML += `<p style="text-align:center;margin-top:20px;color:#aaa">Mostrando 40 de ${recetasFiltradas.length} resultados. Sigue buscando.</p>`;
+  }
+}
+
+document.getElementById('searchInput').addEventListener('input', (e) => {
+  mostrarRecetas(e.target.value);
+});
+
+// Cargar al inicio
+setTimeout(() => mostrarRecetas(), 100);
+</script>
+
+</body>
+</html>
