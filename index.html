@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="es">
+<head><link rel="stylesheet" href="style.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Divisas Global</title>
+    <style>
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #e9ecef; 
+            display: flex; 
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+            margin: 0; 
+        }
+        .calculator { 
+            background: white; 
+            padding: 25px; 
+            border-radius: 12px; 
+            box-shadow: 0px 4px 15px rgba(0,0,0,0.1); 
+            max-width: 350px; 
+            width: 100%; 
+        }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        label { font-weight: bold; font-size: 14px; color: #555; }
+        input, select, button { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 8px 0 20px 0; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            box-sizing: border-box; 
+            font-size: 16px;
+        }
+        button { 
+            background-color: #28a745; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-weight: bold; 
+            transition: 0.3s;
+        }
+        button:hover { background-color: #218838; }
+        button:disabled { background-color: #6c757d; cursor: not-allowed; }
+        .result { 
+            font-size: 1.3em; 
+            font-weight: bold; 
+            text-align: center; 
+            color: #0056b3; 
+            padding-top: 10px;
+            border-top: 2px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="calculator">
+        <h2>Cambio Global</h2>
+        
+        <label>Cantidad a cambiar:</label>
+        <input type="number" id="amount" value="1" min="0">
+
+        <label>Tengo (Origen):</label>
+        <!-- Las listas están vacías porque JavaScript las llenará solas -->
+        <select id="fromCurrency"></select>
+
+        <label>Quiero (Destino):</label>
+        <select id="toCurrency"></select>
+
+        <button id="calcBtn" onclick="calculate()" disabled>Cargando...</button>
+
+        <div class="result" id="resultText">Conectando al servidor...</div>
+    </div>
+
+    <script>
+        // Variable vacía donde guardaremos las 160+ tasas de cambio que lleguen de internet
+        let rates = {};
+
+        // 1. Función para conectarnos a la API y traer TODAS las monedas
+        async function loadCurrencies() {
+            try {
+                // Usamos una API pública y gratuita que se actualiza todos los días
+                let response = await fetch('https://open.er-api.com/v6/latest/USD');
+                let data = await response.json();
+                
+                // Guardamos los precios en nuestra variable
+                rates = data.rates; 
+
+                let fromSelect = document.getElementById("fromCurrency");
+                let toSelect = document.getElementById("toCurrency");
+
+                // 2. Un ciclo (bucle) que crea una opción por cada moneda que haya llegado
+                for (let currency in rates) {
+                    let option1 = document.createElement("option");
+                    option1.value = currency;
+                    option1.innerText = currency; // Ejemplo: "USD", "COP", "JPY"
+                    fromSelect.appendChild(option1);
+
+                    let option2 = document.createElement("option");
+                    option2.value = currency;
+                    option2.innerText = currency;
+                    toSelect.appendChild(option2);
+                }
+
+                // 3. Seleccionamos unas por defecto para que no salga en blanco
+                fromSelect.value = "USD";
+                toSelect.value = "COP";
+                
+                // Habilitamos el botón y avisamos que todo salió bien
+                document.getElementById("calcBtn").disabled = false;
+                document.getElementById("calcBtn").innerText = "Calcular";
+                document.getElementById("resultText").innerText = "¡Monedas actualizadas!";
+
+            } catch (error) {
+                // Si el usuario no tiene internet, le avisamos
+                document.getElementById("resultText").innerText = "Error: Necesitas internet para actualizar.";
+                document.getElementById("resultText").style.color = "red";
+            }
+        }
+
+        // Ejecutamos la función de descargar apenas se abre la aplicación
+        loadCurrencies();
+
+        // 4. La matemática (sigue siendo exactamente la misma)
+        function calculate() {
+            let amount = document.getElementById("amount").value;
+            let from = document.getElementById("fromCurrency").value;
+            let to = document.getElementById("toCurrency").value;
+
+            if (amount === "" || amount <= 0) {
+                document.getElementById("resultText").innerText = "Pon una cantidad válida";
+                return;
+            }
+
+            let amountInUSD = amount / rates[from];
+            let finalAmount = amountInUSD * rates[to];
+
+            let formattedResult = finalAmount.toLocaleString('es-CO', { 
+                minimumFractionDigits: 2, 
+                maximumFractionDigits: 2 
+            });
+
+            document.getElementById("resultText").style.color = "#0056b3";
+            document.getElementById("resultText").innerText = 
+                amount + " " + from + " = \n" + formattedResult + " " + to;
+        }
+    </script>
+
+</body>
+</html>
